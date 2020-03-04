@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset=utf-8 />
+    <title>Lab 08 Starter</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
+    <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: whitesmoke;
+            font-family: Lato, sans-serif;
+            color: #0D0000;
+        }
+        header {
+            padding: 6px 10%;
+        }
+        h1 {
+            display: inline-block;
+            margin-right: 20px;
+            color: #001323;
+        }
+        h2 {
+            display: inline-block;
+            color: #001323;
+        }
+        #map {
+            width: 80%;
+            height: 540px;
+            margin: 10px auto;
+        }
+        footer {
+            padding: 6px 10%;
+            width: 80%;
+        }
+        p {
+            font-size: 1em;
+            color: #001323;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+       <b><h1>Proportional Symbol Map</h1>
+        <h2>Alternative Power Sources</h2></b>
+    </header>
+
+    <div id='map'></div>
+
+    <footer>
+        <b><p>Map Authored by: Sappay Foray-Musa</p>
+        <p>Professional Science Master's in GIS Student</p>
+        <p>Department of Geography and Urban Studies, Temple University</p></b>
+        
+    </footer>
+
+    <script src="power-plants.js"></script>
+    <script>
+
+      var map = L.map('map', {
+          center: [36,-94],
+          zoom: 4,
+		  layer : [hydroBase, esri_World, grayscale]
+      });
+      
+	// Base layers
+    var hydroBase = L.tileLayer('https://{s}.tile.openstreetmap.se/hydda/base/{z}/{x}/{y}.png', {
+		attribution: '<a href="http://openstreetmap.se/" target="_blank">OpenStreetMap Sweden</a><br><a href="https://sappay.github.io/SaloneConflicts/">Snr. Sapp</a> | Web Mapping &amp; Map Servers | Spring 2019'
+    });
+    var esri_World = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri <br><a href="https://sappay.github.io/SaloneConflicts/">Snr. Sapp</a> | Web Mapping &amp; Map Servers | Spring 2019'
+    });
+		
+	 var grayscale = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap'
+      }); 
+		
+	var baseLayer = {
+        'Esri: Satellite Map': esri_World,
+        'Open Street Map': hydroBase,
+		'Grayscale' : grayscale,
+    };
+      
+      esri_World.addTo(map);
+
+    
+    //step 1    and then change to step 3 with 'return'
+    var hydroLayer = L.geoJson(plants, {
+    pointToLayer: function(feature, latlng) {
+        return L.circleMarker(latlng, commonStyles);
+    },
+	
+	style: function(feature) {
+		return {
+			color: '#00A242',
+			fillColor: '#001ab0',
+			radius: getRadius(feature.properties.capacity_mw)} 
+		},
+	onEachFeature : function(feature, layer) {
+//            console.log(layer)
+            layer.on('mouseover',function(){
+                layer.setStyle({
+                    fillColor: 'green'
+                }).bindPopup("<b>Plant Name: </b>"+feature.properties.plant_name+"<br><b>Capacity: </b>"+feature.properties.capacity_mw+'MW'+"<br><b>Hydro Grade: </b>"+feature.properties.fuel_source.Hydro)
+			
+			layer.on('mouseout', function() {
+    			layer.setStyle({
+        			fillColor: 'yellow'
+    		});
+		});      
+        	})
+	},
+	
+	filter: function(feature) {
+        if(feature.properties.fuel_source.Hydro) {
+            return feature
+		}
+		console.log(feature.properties)
+    }
+	
+	}).addTo(map);
+	
+	var biom = L.geoJSON(plants, {
+    pointToLayer: function(feature, latlng) {
+        return L.circleMarker(latlng, commonStyles);
+    },
+	
+	style: function(feature) {
+		return {
+			color: '#a00e42',
+			fillColor: '#2aff03',
+			radius: getRadius(feature.properties.capacity_mw * 10)} 
+		},
+		
+	onEachFeature : function(feature, layer) {
+//     console.log(layer)
+		layer.on('mouseover',function(){
+			layer.setStyle({
+				fillColor: 'red'
+		}).bindPopup("<b>Plant Name: </b>"+feature.properties.plant_name+"<br><b>Capacity: </b>"+feature.properties.capacity_mw+'MW'+"<br><b>Biomass Grade: </b>"+feature.properties.fuel_source.Biomass)
+			
+		layer.on('mouseout', function() {
+			layer.setStyle({
+				fillColor: 'green'
+    		});
+		});      
+        	})
+	},
+	
+	filter: function(feature) {
+        if(feature.properties.fuel_source.Biomass) {
+            return feature
+		}
+		console.log(feature.properties)
+    }	
+	
+}).addTo(map);
+
+var geotherm = L.geoJSON(plants, {
+    pointToLayer: function(feature, latlng) {
+        return L.circleMarker(latlng, commonStyles);
+    },
+	
+	style: function(feature) {
+		return {
+			color: '#e14ea2',
+			fillColor: '#1a320f',
+			radius: getRadius(feature.properties.capacity_mw * 2)} 
+		},
+	
+	onEachFeature : function(feature, layer) {
+//     console.log(layer)
+		layer.on('mouseover',function(){
+			layer.setStyle({
+				fillColor: '#0ab021'
+		}).bindPopup("<b>Plant Name: </b>"+feature.properties.plant_name+"<br><b>Capacity: </b>"+feature.properties.capacity_mw+'MW'+"<br><b>Geothermal Grade: </b>"+feature.properties.fuel_source.Geothermal)
+			
+		layer.on('mouseout', function() {
+			layer.setStyle({
+				fillColor: '#a00123'
+    		});
+		});      
+        	})
+	},
+	
+	filter: function(feature) {
+        if(feature.properties.fuel_source.Geothermal) {
+            return feature
+		}
+		/*console.log(feature.properties)*/
+    }	
+	
+}).addTo(map);
+
+  var commonStyles = {
+            weight: 1,
+            stroke: 1,
+            fillOpacity: .6
+        }
+
+  function getRadius(val) {
+    var radius = Math.sqrt(val/Math.PI);
+    return radius * .6   
+  	};
+		
+	var sourcesLayers = {
+        "Hydro": hydroLayer,
+		"Biomass" : biom,
+		"Geothermal" : geotherm,
+    };
+		
+	  L.control.scale({
+        position: 'bottomleft'
+       /* imperial: true,
+        metric: true*/
+    });
+	L.control.layers(baseLayer, sourcesLayers, { collapsed:false }).addTo(map); // the object {collaspsed : false} is an layer control option responsible for expanding the layers on the. If true, the control will be collapsed into an icon and expanded on mouse hover or touch.
+
+var sourcesLayers = {
+    "<b style='color:#1f78b4'>Hydro</b>": hydroLayer,
+	"<b style='color:#a6cee3'>Biomass</b>": biom,
+	"<b style='color:#ffff99; text-shadow: 0px 0px 1px #333;'>Solar</b>": geotherm
+    }
+
+          
+    </script>
+    
+</body>
+
+</html>
